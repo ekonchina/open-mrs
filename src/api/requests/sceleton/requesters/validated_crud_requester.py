@@ -25,4 +25,3 @@ class ValidatedCrudRequester(HTTPRequest):
         response = self.crud_requester.update(model=model)
         return self.endpoint.value.response_model.model_validate(response.json())
 
-

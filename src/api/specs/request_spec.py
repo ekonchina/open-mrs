@@ -1,3 +1,4 @@
+import base64
 import logging
 
 import requests
@@ -25,8 +26,10 @@ class RequestSpecs:
 
     @staticmethod
     def admin_auth_spec():
+        raw = "admin:Admin123"
+        token = base64.b64encode(raw.encode()).decode()
         headers = RequestSpecs.default_request_headers()
-        headers["authorization"] = "Basic YWRtaW46YWRtaW4="
+        headers["authorization"] = f"Basic {token}"
         return headers
 
     @staticmethod
@@ -45,6 +48,5 @@ class RequestSpecs:
                 headers = RequestSpecs.default_request_headers()
                 headers['Authorization'] = response.headers.get('Authorization')
                 return headers
-
 
 

@@ -14,4 +14,3 @@ class TestLogin:
     def test_login_admin_user(self, api_manager: ApiManager, admin_user_request: CreateUserRequest):
         api_manager.user_steps.login(user_request=admin_user_request)
 
-

@@ -20,4 +20,3 @@ class Config:
         return Config().config["DEFAULT"].get(key, fallback=default_value)
 
 
-

@@ -12,4 +12,3 @@ class TestLogin:
     def test_get_customer_profile(self, user_request: CreateUserRequest, api_manager: ApiManager):
         api_manager.user_steps.get_customer_profile(create_user_request=user_request)
 
-

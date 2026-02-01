@@ -38,4 +38,3 @@ class TestUpdateCustomerProfile:
         api_manager.user_steps.invalid_update_customer_profile(create_user_request=user_request, name = name, error_key = error_key, error_value = error_value)
 
 
-

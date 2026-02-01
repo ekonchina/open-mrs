@@ -25,4 +25,3 @@ class AdminUserRequester(Requester):
         self.response_spec(response)
         return response
 
-

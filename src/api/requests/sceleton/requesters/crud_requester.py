@@ -63,4 +63,3 @@ class CrudRequester(HTTPRequest, CrudEndPointInterface):
                                  headers=self.request_spec)
         self.response_spec(response)
         return response
-

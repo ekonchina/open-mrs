@@ -10,6 +10,7 @@ from src.api.models.requests.update_profile_request import UpdateProfileRequest
 from src.api.models.responses.create_acoount_response import AccountResponse
 from src.api.models.responses.create_user_response import UserProfileResponse
 from src.api.models.responses.login_user_response import LoginUserResponse
+from src.api.models.responses.role_response import RoleListResponse
 
 
 @dataclass(frozen=True)
@@ -26,3 +27,8 @@ class Endpoint(Enum):
     FUND_DEPOSIT = EndpointConfig(url="/accounts/deposit", request_model=FundDepositRequest, response_model=AccountResponse)
     GET_CUSTOMER_PROFILE = EndpointConfig(url="/customer/profile", request_model=None, response_model=UserProfileResponse)
     UPDATE_CUSTOMER_PROFILE = EndpointConfig(url="/customer/profile", request_model=UpdateProfileRequest, response_model=None)
+    GET_ROLES = EndpointConfig(
+        url="/role",
+        request_model=None,
+        response_model=RoleListResponse
+    )

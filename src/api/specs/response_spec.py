@@ -41,4 +41,3 @@ class ResponseSpecs:
 
         return check
 
-

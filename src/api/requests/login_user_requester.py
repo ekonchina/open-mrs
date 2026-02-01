@@ -15,4 +15,3 @@ class LoginUserRequester(Requester):
         return LoginUserResponse(**response.json())
 
 
-

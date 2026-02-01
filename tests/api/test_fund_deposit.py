@@ -12,4 +12,3 @@ class TestFundDeposit:
     # негативные тест кейсы подумать еще
     def test_fund_deposit(self, user_request: CreateUserRequest, api_manager: ApiManager):
         response = api_manager.user_steps.fund_deposit(create_user_request=user_request)
-

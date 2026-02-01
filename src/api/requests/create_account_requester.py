@@ -12,4 +12,3 @@ class CreateAccountRequester(Requester):
         self.response_spec(response)
         return UserProfileResponse(**response.json())
 
-

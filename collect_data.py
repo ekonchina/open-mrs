@@ -42,4 +42,3 @@ with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
                 out.write(f"\n[ERROR READING FILE: {e}]\n")
 
 print(f"Готово! Исключены .venv, .git, node_modules, __pycache__. Результат: {OUTPUT_FILE}")
-

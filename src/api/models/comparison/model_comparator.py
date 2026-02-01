@@ -39,4 +39,3 @@ class ModelComparator:
                 return getattr(obj, field_name)
             current_class = current_class.__base__
         raise AttributeError(f'Field {field_name} not found in class {obj.__class__.__name__}')
-

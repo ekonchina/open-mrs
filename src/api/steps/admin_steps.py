@@ -50,6 +50,12 @@ class AdminSteps(BaseSteps):
             response_spec=ResponseSpecs.entity_was_deleted()
         ).delete(user_id)
 
+    def get_roles(self):
+        return ValidatedCrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.GET_ROLES,
+            response_spec=ResponseSpecs.request_returns_ok()
+        ).get()
 
 
 
