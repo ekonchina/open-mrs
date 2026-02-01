@@ -64,6 +64,13 @@ class AdminSteps(BaseSteps):
             response_spec=ResponseSpecs.request_returns_ok()
         ).get()
 
+    def get_patient_identifier_types(self):
+        return ValidatedCrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.GET_PATIENT_IDENTIFIER_TYPES,
+            response_spec=ResponseSpecs.request_returns_ok()
+        ).get()
+
 
 
 

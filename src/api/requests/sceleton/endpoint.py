@@ -12,6 +12,7 @@ from src.api.models.responses.create_user_response import UserProfileResponse
 from src.api.models.responses.get_location_response import LocationListResponse
 from src.api.models.responses.get_roles_response import RoleListResponse
 from src.api.models.responses.login_user_response import LoginUserResponse
+from src.api.models.responses.patient_identifier_type_response import PatientIdentifierTypeListResponse
 
 
 @dataclass(frozen=True)
@@ -38,4 +39,10 @@ class Endpoint(Enum):
         url="/location",
         request_model=None,
         response_model=LocationListResponse
+    )
+
+    GET_PATIENT_IDENTIFIER_TYPES = EndpointConfig(
+        url="/patientidentifiertype",
+        request_model=None,
+        response_model=PatientIdentifierTypeListResponse
     )
