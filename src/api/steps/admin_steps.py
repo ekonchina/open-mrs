@@ -57,6 +57,13 @@ class AdminSteps(BaseSteps):
             response_spec=ResponseSpecs.request_returns_ok()
         ).get()
 
+    def get_locations(self):
+        return ValidatedCrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.GET_LOCATIONS,
+            response_spec=ResponseSpecs.request_returns_ok()
+        ).get()
+
 
 
 

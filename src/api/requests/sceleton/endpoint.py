@@ -9,8 +9,9 @@ from src.api.models.requests.login_user_request import LoginUserRequest
 from src.api.models.requests.update_profile_request import UpdateProfileRequest
 from src.api.models.responses.create_acoount_response import AccountResponse
 from src.api.models.responses.create_user_response import UserProfileResponse
+from src.api.models.responses.get_location_response import LocationListResponse
+from src.api.models.responses.get_roles_response import RoleListResponse
 from src.api.models.responses.login_user_response import LoginUserResponse
-from src.api.models.responses.role_response import RoleListResponse
 
 
 @dataclass(frozen=True)
@@ -31,4 +32,10 @@ class Endpoint(Enum):
         url="/role",
         request_model=None,
         response_model=RoleListResponse
+    )
+
+    GET_LOCATIONS = EndpointConfig(
+        url="/location",
+        request_model=None,
+        response_model=LocationListResponse
     )
