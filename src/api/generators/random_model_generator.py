@@ -1,7 +1,7 @@
 import random
 import uuid
 from datetime import datetime, timedelta
-from typing import get_type_hints, Any, get_origin, Annotated, get_args
+from typing import get_type_hints, Any, get_origin, Annotated, get_args, Union
 
 import rstr
 
@@ -46,7 +46,25 @@ class RandomModelGenerator:
         return generated
 
     @staticmethod
-    def _generate_value(field_type: type) -> Any:
+    def _generate_value(field_type: Any) -> Any:
+        origin = get_origin(field_type)
+
+        # Optional[T] -> Union[T, NoneType]
+        if origin is Union:
+            args = [a for a in get_args(field_type)]
+            non_none = [a for a in args if a is not type(None)]
+            # чаще генерим значение, иногда None
+            if not non_none or random.random() < 0.2:
+                return None
+            return RandomModelGenerator._generate_value(non_none[0])
+
+        # List[T]
+        if origin in (list,):
+            (item_type,) = get_args(field_type) or (str,)
+            # для REST-запроса на создание обычно достаточно 1 элемента
+            return [RandomModelGenerator._generate_value(item_type)]
+
+        # базовые типы
         if field_type is str:
             return str(uuid.uuid4())[:8]
         elif field_type is int:
@@ -57,10 +75,11 @@ class RandomModelGenerator:
             return random.choice([True, False])
         elif field_type is datetime:
             return datetime.now() - timedelta(seconds=random.randint(0, 100000))
-        elif field_type is list:
-            return [str(uuid.uuid4())[:5] for _ in range(random.randint(3, 10))]
-        elif isinstance(field_type, type):
+
+        # вложенные модели (Pydantic)
+        if isinstance(field_type, type):
             return RandomModelGenerator.generate(field_type)
-        return
+
+        return None
 
 
