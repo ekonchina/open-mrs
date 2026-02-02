@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Protocol, Optional, Union, TypeVar
+from typing import Protocol, Optional, Union, TypeVar, Dict, Any
 
 import requests
 from requests import Response
@@ -28,13 +28,16 @@ class CrudRequester(HTTPRequest, CrudEndPointInterface):
         return response
 
 
-    def get(self, model: Optional[BaseModel] = None, id : Optional[int] = None) -> BaseModel:
 
+    def get(self, model: Optional[BaseModel] = None, id: Optional[str] = None, params: Optional[Dict[str, Any]] = None):
         server_url = Config.get('server')
         api_version_url = Config.get('api_version')
 
-        response = requests.get(url=f'{server_url}{api_version_url}{self.endpoint.value.url}',
-                                   headers=self.request_spec)
+        url = f'{server_url}{api_version_url}{self.endpoint.value.url}'
+        if id:
+            url = f"{url}/{id}"
+
+        response = requests.get(url=url, headers=self.request_spec, params=params)
         self.response_spec(response)
         return response
 

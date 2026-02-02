@@ -1,4 +1,4 @@
-from typing import TypeVar, Dict, Callable, Optional
+from typing import TypeVar, Dict, Callable, Optional, Any
 
 from src.api.models.base_model import BaseModel
 from src.api.requests.sceleton.endpoint import Endpoint
@@ -17,8 +17,8 @@ class ValidatedCrudRequester(HTTPRequest):
         response = self.crud_requester.post(model= model)
         return self.endpoint.value.response_model.model_validate(response.json())
 
-    def get(self):
-        response = self.crud_requester.get()
+    def get(self, id: Optional[str] = None, params: Optional[Dict[str, Any]] = None):
+        response = self.crud_requester.get(id=id, params=params)
         return self.endpoint.value.response_model.model_validate(response.json())
 
     def update(self,  model: T):

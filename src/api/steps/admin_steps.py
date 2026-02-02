@@ -2,7 +2,9 @@ from typing import Union
 
 from src.api.generators.random_model_generator import RandomModelGenerator
 from src.api.models.comparison.model_assertions import ModelAssertions
+from src.api.models.requests.create_person_request import CreatePersonRequest
 from src.api.models.requests.create_user_request import CreateUserRequest
+from src.api.models.responses.create_person_response import PersonCreateResponse, PersonFullResponse
 from src.api.models.responses.create_user_response import UserProfileResponse
 from src.api.requests.sceleton.endpoint import Endpoint
 from src.api.requests.sceleton.requesters.crud_requester import CrudRequester
@@ -70,6 +72,22 @@ class AdminSteps(BaseSteps):
             endpoint=Endpoint.GET_PATIENT_IDENTIFIER_TYPES,
             response_spec=ResponseSpecs.request_returns_ok()
         ).get()
+
+    def create_person(self, create_person_request: CreatePersonRequest) -> PersonCreateResponse:
+        return ValidatedCrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.CREATE_PERSON,
+            response_spec=ResponseSpecs.entity_was_created()  # обычно 201
+        ).post(create_person_request)
+
+    def get_person_full(self, person_uuid: str) -> PersonFullResponse:
+        return ValidatedCrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.GET_PERSON,
+            response_spec=ResponseSpecs.request_returns_ok()
+        ).get(id=person_uuid, params={"v": "full"})
+
+    #TODO: удалять персон
 
 
 
