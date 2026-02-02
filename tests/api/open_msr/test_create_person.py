@@ -11,29 +11,23 @@ from src.api.models.requests.create_person_request import CreatePersonRequest
 def test_create_person_generated(api_manager):
 
 
-    req = RandomModelGenerator.generate(CreatePersonRequest)
+    create_person_request_data = RandomModelGenerator.generate(CreatePersonRequest)
 
-    # если хочешь строго "как в примере доки" — оставь addresses как есть (он сгенерится либо None либо list)
-    # если хочешь всегда адрес:
-    if req.addresses is None:
-        # можно заставить — но проще выставить probability в генераторе
-        pass
+    created_person = api_manager.admin_steps.create_person(create_person_request_data)
 
-    created = api_manager.admin_steps.create_person(req)
-
-    assert created.uuid
-    assert created.gender == req.gender
-    assert created.uuid
-    assert created.display
+    assert created_person.uuid
+    assert created_person.gender == create_person_request_data.gender
+    assert created_person.uuid
+    assert created_person.display
     #assert created.gender == create_person_request.
-    assert created.voided is False
-    assert created.preferredName and created.preferredName.uuid
-    assert created.links and any(l.rel == "self" for l in created.links)
+    assert created_person.voided is False
+    assert created_person.preferredName and created_person.preferredName.uuid
+    assert created_person.links and any(l.rel == "self" for l in created_person.links)
 
     # 2) GET FULL
-    full = api_manager.admin_steps.get_person_full(created.uuid)
+    full = api_manager.admin_steps.get_person_full(created_person.uuid)
 
-    assert full.uuid == created.uuid
+    assert full.uuid == created_person.uuid
     #assert full.gender == create_person_request.gender
     assert full.voided is False
     assert isinstance(full.names, list) and full.names
