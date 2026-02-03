@@ -76,6 +76,7 @@ class AdminSteps(BaseSteps):
             response_spec=ResponseSpecs.entity_was_created()
         ).post(req)
 
+        ModelAssertions(req, patient).match()
         self.created_objects.append(patient)
         return patient
 
