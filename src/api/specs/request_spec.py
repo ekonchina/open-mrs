@@ -8,7 +8,6 @@ class RequestSpecs:
     def default_request_headers():
         return {
             'Content-Type': 'application/json',
-            'Authorization': 'Basic YWRtaW46YWRtaW4=',
         }
 
     @staticmethod
