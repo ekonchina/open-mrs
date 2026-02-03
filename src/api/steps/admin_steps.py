@@ -20,39 +20,6 @@ from src.api.steps.base_steps import BaseSteps
 
 class AdminSteps(BaseSteps):
 
-    def create_valid_user(self, create_user_request:CreateUserRequest = RandomModelGenerator.generate(CreateUserRequest)) -> Union[UserProfileResponse, None]:
-
-
-        create_user_response: UserProfileResponse = ValidatedCrudRequester(
-            request_spec=RequestSpecs.admin_auth_spec(),
-            endpoint=Endpoint.ADMIN_CREATE_USER,
-            response_spec=ResponseSpecs.entity_was_created()
-        ).post(create_user_request)
-
-
-        ModelAssertions(create_user_request,create_user_response).match()
-
-        self.created_objects.append(create_user_response)
-
-        return create_user_response
-
-    def create_invalid_user(self, create_user_request:CreateUserRequest, error_key, error_value):
-
-        CrudRequester(
-            request_spec=RequestSpecs.admin_auth_spec(),
-            endpoint=Endpoint.ADMIN_CREATE_USER,
-            response_spec=ResponseSpecs.request_returns_bad_request(error_key,error_value)
-        ).post(create_user_request)
-
-
-    def delete_user(self,user_id: int):
-
-        CrudRequester(
-            request_spec=RequestSpecs.admin_auth_spec(),
-            endpoint=Endpoint.ADMIN_DELETE_USER,
-            response_spec=ResponseSpecs.entity_was_deleted()
-        ).delete(user_id)
-
     def get_roles(self):
         return ValidatedCrudRequester(
             request_spec=RequestSpecs.admin_auth_spec(),
@@ -136,24 +103,22 @@ class AdminSteps(BaseSteps):
         create_person_request = create_person_request or RandomModelGenerator.generate(CreatePersonRequest)
         created_person = self.create_person(create_person_request)
 
-        # 2) справочники
         types = self.get_patient_identifier_types()
         identifier_type_uuid = types.results[0].uuid
 
         locations = self.get_locations()
         location_uuid = locations.results[0].uuid
 
-        # 3) identifier
+        # 2) identifier
         identifier = identifier_request or RandomModelGenerator.generate(PatientIdentifierRequest)
         identifier.identifierType = identifier_type_uuid
         identifier.location = location_uuid
         identifier.preferred = True
 
-        # 4) patient
+        # 3) patient
         req = CreatePatientFromPersonRequest(person=created_person.uuid, identifiers=[identifier])
         created_patient = self.create_patient_from_person(req)
 
-        # 5) минимальные ассерты (по аналогии с create_valid_user)
         assert created_patient.uuid
         assert created_patient.display
 
