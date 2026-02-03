@@ -9,7 +9,7 @@ from src.api.models.requests.create_patient_from_person_request import (
 
 
 @pytest.mark.api
-def test_create_patient_from_existing_person_generated(api_manager):
+def test_create_patient_from_existing_person(api_manager):
     # 1) Создаём person
     create_person_request_data = RandomModelGenerator.generate(CreatePersonRequest)
     created_person = api_manager.admin_steps.create_person(create_person_request_data)
