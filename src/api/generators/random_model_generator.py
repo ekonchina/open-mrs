@@ -29,9 +29,7 @@ class RandomModelGenerator:
                         rule = ann
 
             if cls is PatientIdentifierRequest and field_name == "identifier":
-                # например, длина 10 (можно сделать randint)
                 value = generate_mod30_identifier(total_len=random.randint(6, 12))
-                # самопроверка (на всякий)
                 assert luhn_mod_n_is_valid(value), f"Generated invalid Mod-30 id: {value}"
                 init_data[field_name] = value
                 continue
@@ -69,22 +67,17 @@ class RandomModelGenerator:
     def _generate_value(field_type: Any) -> Any:
         origin = get_origin(field_type)
 
-        # Optional[T] -> Union[T, NoneType]
         if origin is Union:
             args = [a for a in get_args(field_type)]
             non_none = [a for a in args if a is not type(None)]
-            # чаще генерим значение, иногда None
             if not non_none or random.random() < 0.2:
                 return None
             return RandomModelGenerator._generate_value(non_none[0])
 
-        # List[T]
         if origin in (list,):
             (item_type,) = get_args(field_type) or (str,)
-            # для REST-запроса на создание обычно достаточно 1 элемента
             return [RandomModelGenerator._generate_value(item_type)]
 
-        # базовые типы
         if field_type is str:
             return str(uuid.uuid4())[:8]
         elif field_type is int:
@@ -96,7 +89,6 @@ class RandomModelGenerator:
         elif field_type is datetime:
             return datetime.now() - timedelta(seconds=random.randint(0, 100000))
 
-        # вложенные модели (Pydantic)
         if isinstance(field_type, type):
             return RandomModelGenerator.generate(field_type)
 
