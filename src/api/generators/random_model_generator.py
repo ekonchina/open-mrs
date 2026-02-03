@@ -18,19 +18,17 @@ class RandomModelGenerator:
             rule = None
             actual_type = annotated_type
 
-            if field_name == "birthdate" and actual_type is str:
-                # 0..90 лет назад, чтобы точно не future и всегда валидная дата
-                days_ago = random.randint(0, 365 * 90)
-                d = date.today() - timedelta(days=days_ago)
-                # Вариант 1: короткий формат (часто принимается OpenMRS)
-                init_data[field_name] = d.isoformat()
-                continue
-
             if get_origin(annotated_type) is Annotated:
                 actual_type, *annotations = get_args(annotated_type)
                 for ann in annotations:
                     if isinstance(ann, GeneratingRule):
                         rule = ann
+
+            if field_name == "birthdate" and actual_type is str:
+                days_ago = random.randint(0, 365 * 90)
+                d = date.today() - timedelta(days=days_ago)
+                init_data[field_name] = d.isoformat()
+                continue
 
             if rule:
                 value = RandomModelGenerator._generate_from_regex(
