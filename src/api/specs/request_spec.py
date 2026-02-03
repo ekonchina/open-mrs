@@ -11,7 +11,6 @@ from src.api.specs.response_spec import ResponseSpecs
 
 
 class RequestSpecs:
-    _BASE_URL = Config.get('backendUrl')
 
     @staticmethod
     def default_request_headers():
