@@ -4,7 +4,7 @@ from src.api.generators.random_model_generator import RandomModelGenerator
 from src.api.models.comparison.model_assertions import ModelAssertions
 from src.api.models.requests.create_patient_from_person_request import CreatePatientFromPersonRequest, \
     PatientIdentifierRequest
-from src.api.models.requests.create_person_request import CreatePersonRequest
+from src.api.models.requests.create_person_request import CreatePersonRequest, CreatePersonInvalidRequest
 from src.api.models.requests.create_user_request import CreateUserRequest
 from src.api.models.responses.create_patient_response import PatientCreateResponse
 from src.api.models.responses.create_person_response import CreatPersonResponse, PersonFullResponse
@@ -122,6 +122,13 @@ class AdminSteps(BaseSteps):
             response_spec=ResponseSpecs.entity_was_deleted()
         ).delete_with_params(id=patient_uuid, params=params)
 
+    def create_invalid_person(self, create_person_request: CreatePersonInvalidRequest, error_key, error_value):
+        CrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.CREATE_PERSON,
+            response_spec=ResponseSpecs.request_returns_bad_request(error_key, error_value),
+        ).post(create_person_request)
+
     def create_patient_from_existing_person(
         self,
         create_person_request: CreatePersonRequest | None = None,
@@ -154,7 +161,7 @@ class AdminSteps(BaseSteps):
 
         return created_patient
 
-    #TODO: удалять персон
+
 
 
 
