@@ -4,7 +4,6 @@ import logging
 import requests
 
 from src.api.configs.config import Config
-from src.api.models.requests.login_user_request import LoginUserRequest
 from src.api.requests.sceleton.endpoint import Endpoint
 from src.api.requests.sceleton.requesters.crud_requester import CrudRequester
 from src.api.specs.response_spec import ResponseSpecs

@@ -6,7 +6,6 @@ from requests import Response
 
 from src.api.configs.config import Config
 from src.api.models.base_model import BaseModel
-from src.api.models.responses.create_user_response import UserProfileResponse
 from src.api.requests.sceleton.http_request import HTTPRequest
 from src.api.requests.sceleton.interfaces.crud_end_interface import CrudEndPointInterface
 
