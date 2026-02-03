@@ -2,6 +2,8 @@ import random
 import uuid
 from datetime import datetime, timedelta
 from typing import get_type_hints, Any, get_origin, Annotated, get_args, Union
+from datetime import date, timedelta
+
 
 import rstr
 
@@ -15,6 +17,14 @@ class RandomModelGenerator:
         for field_name, annotated_type in type_hints.items():
             rule = None
             actual_type = annotated_type
+
+            if field_name == "birthdate" and actual_type is str:
+                # 0..90 лет назад, чтобы точно не future и всегда валидная дата
+                days_ago = random.randint(0, 365 * 90)
+                d = date.today() - timedelta(days=days_ago)
+                # Вариант 1: короткий формат (часто принимается OpenMRS)
+                init_data[field_name] = d.isoformat()
+                continue
 
             if get_origin(annotated_type) is Annotated:
                 actual_type, *annotations = get_args(annotated_type)

@@ -29,4 +29,4 @@ class CreatePersonRequest(BaseModel):
     birthdate: Annotated[str, GeneratingRule(regex=r"^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$")]
 
     # по доке: addresses[] :contentReference[oaicite:6]{index=6}
-    addresses: Optional[List[PersonAddressRequest]] = None
+    addresses: List[PersonAddressRequest]

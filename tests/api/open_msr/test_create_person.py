@@ -1,14 +1,13 @@
 import pytest
 
-from src.api.models.requests import create_person_request
-from src.api.models.requests.create_person_request import CreatePersonRequest, PersonNameRequest
+
 from src.api.generators.random_model_generator import RandomModelGenerator
 from src.api.models.requests.create_person_request import CreatePersonRequest
 #TODO: автоматическая генерация данных
 # Сравнение полей
 # удаление персон
 @pytest.mark.api
-def test_create_person_generated(api_manager):
+def test_create_person(api_manager):
 
 
     create_person_request_data = RandomModelGenerator.generate(CreatePersonRequest)
