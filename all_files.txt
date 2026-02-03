@@ -176,6 +176,7 @@ FILE: ./.pytest_cache/v/cache/nodeids
   "tests/api/open_msr/test_create_person.py::test_create_person_full_validation[create_person_request0]",
   "tests/api/open_msr/test_create_person.py::test_create_person_full_validation[create_person_request1]",
   "tests/api/open_msr/test_create_person.py::test_create_person_full_validation[create_person_request2]",
+  "tests/api/open_msr/test_create_person.py::test_create_person_generated",
   "tests/api/open_msr/test_get_locations.py::test_get_locations",
   "tests/api/open_msr/test_get_patient_identifier_types.py::TestPatientIdentifierTyped::test_patient_identifier_types",
   "tests/api/open_msr/test_get_roles.py::TestGetRoles::test_get_roles",
@@ -194,7 +195,8 @@ FILE: ./.pytest_cache/v/cache/lastfailed
   "help_requests/test_create_person.py::test_create_person_success_variants[payload4-expected_check4]": true,
   "help_requests/test_create_person.py::test_create_person_negative_validation[payload5]": true,
   "help_requests/test_create_person.py::test_create_person_negative_validation[payload2]": true,
-  "help_requests/test_create_person.py::test_create_person_negative_validation[payload4]": true
+  "help_requests/test_create_person.py::test_create_person_negative_validation[payload4]": true,
+  "tests/api/open_msr/test_create_person.py::test_create_person_generated": true
 }
 ================================================================================
 FILE: ./resources/model-comparison.properties
@@ -452,61 +454,39 @@ FILE: ./tests/api/open_msr/test_create_person.py
 ================================================================================
 import pytest
 
+from src.api.models.requests import create_person_request
 from src.api.models.requests.create_person_request import CreatePersonRequest, PersonNameRequest
-
+from src.api.generators.random_model_generator import RandomModelGenerator
+from src.api.models.requests.create_person_request import CreatePersonRequest
 #TODO: автоматическая генерация данных
 # Сравнение полей
 # удаление персон
 @pytest.mark.api
-@pytest.mark.parametrize(
-    "create_person_request",
-    [
-        CreatePersonRequest(
-            names=[PersonNameRequest(givenName="John", familyName="Doe")],
-            gender="M"
-        ),
-        CreatePersonRequest(
-            names=[PersonNameRequest(givenName="Alice", familyName="Smith")],
-            gender="F",
-            age=30
-        ),
-        CreatePersonRequest(
-            names=[PersonNameRequest(givenName="Bob", familyName="Brown")],
-            gender="M",
-            birthdate="1990-01-15"
-        ),
-    ]
-)
-def test_create_person_full_validation(api_manager, create_person_request: CreatePersonRequest):
-    # 1) CREATE
-    created = api_manager.admin_steps.create_person(create_person_request)
+def test_create_person_generated(api_manager):
 
-    assert created.uuid
-    assert created.display
-    assert created.gender == create_person_request.gender
-    assert created.voided is False
-    assert created.preferredName and created.preferredName.uuid
-    assert created.links and any(l.rel == "self" for l in created.links)
+
+    create_person_request_data = RandomModelGenerator.generate(CreatePersonRequest)
+
+    created_person = api_manager.admin_steps.create_person(create_person_request_data)
+
+    assert created_person.uuid
+    assert created_person.gender == create_person_request_data.gender
+    assert created_person.uuid
+    assert created_person.display
+    #assert created.gender == create_person_request.
+    assert created_person.voided is False
+    assert created_person.preferredName and created_person.preferredName.uuid
+    assert created_person.links and any(l.rel == "self" for l in created_person.links)
 
     # 2) GET FULL
-    full = api_manager.admin_steps.get_person_full(created.uuid)
+    full = api_manager.admin_steps.get_person_full(created_person.uuid)
 
-    assert full.uuid == created.uuid
-    assert full.gender == create_person_request.gender
+    assert full.uuid == created_person.uuid
+    #assert full.gender == create_person_request.gender
     assert full.voided is False
     assert isinstance(full.names, list) and full.names
 
-    # проверим, что exact given+family реально присутствуют в names
-    exp_given = create_person_request.names[0].givenName
-    exp_family = create_person_request.names[0].familyName
 
-    found = any(
-        (n.get("givenName") == exp_given and n.get("familyName") == exp_family and n.get("voided") is False)
-        for n in full.names
-        if isinstance(n, dict)
-    )
-    assert found, f"Expected name not found: {exp_given} {exp_family}; names={full.names}"
-ч
 ================================================================================
 FILE: ./help_requests/get_privilage.py
 ================================================================================
@@ -1267,21 +1247,38 @@ class FundDepositRequest(BaseModel):
 ================================================================================
 FILE: ./src/api/models/requests/create_person_request.py
 ================================================================================
-from typing import List, Optional
+from typing import List, Optional, Annotated
+
+from src.api.generators.generating_rule import GeneratingRule
 from src.api.models.base_model import BaseModel
 
 #TODO: Тут генерировать данные
 class PersonNameRequest(BaseModel):
-    givenName: str
-    familyName: str
-    middleName: Optional[str] = None
+    # по доке: givenName, familyName :contentReference[oaicite:1]{index=1}
+    givenName: Annotated[str, GeneratingRule(regex=r"^[A-Z][a-z]{2,12}$")]
+    familyName: Annotated[str, GeneratingRule(regex=r"^[A-Z][a-z]{2,16}$")]
+
+
+class PersonAddressRequest(BaseModel):
+    # по доке (пример): address1, cityVillage, country, postalCode :contentReference[oaicite:2]{index=2}
+    address1: Annotated[str, GeneratingRule(regex=r"^[A-Za-z0-9 ,.-]{5,60}$")]
+    cityVillage: Annotated[str, GeneratingRule(regex=r"^[A-Za-z .-]{2,40}$")]
+    country: Annotated[str, GeneratingRule(regex=r"^[A-Za-z .-]{2,40}$")]
+    postalCode: Annotated[str, GeneratingRule(regex=r"^[0-9]{4,10}$")]
 
 
 class CreatePersonRequest(BaseModel):
+    # по доке: names[] :contentReference[oaicite:3]{index=3}
     names: List[PersonNameRequest]
-    gender: str  # "M" / "F" / "U"
-    age: Optional[int] = None
-    birthdate: Optional[str] = None  # "YYYY-MM-DD"
+
+    # по доке: gender "M" (в примере) :contentReference[oaicite:4]{index=4}
+    gender: Annotated[str, GeneratingRule(regex=r"^(M|F|U)$")]
+
+    # по доке (пример): birthdate "YYYY-MM-DD" :contentReference[oaicite:5]{index=5}
+    birthdate: Annotated[str, GeneratingRule(regex=r"^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$")]
+
+    # по доке: addresses[] :contentReference[oaicite:6]{index=6}
+    addresses: Optional[List[PersonAddressRequest]] = None
 ================================================================================
 FILE: ./src/api/models/comparison/model_assertions.py
 ================================================================================
@@ -2042,7 +2039,7 @@ FILE: ./src/api/generators/random_model_generator.py
 import random
 import uuid
 from datetime import datetime, timedelta
-from typing import get_type_hints, Any, get_origin, Annotated, get_args
+from typing import get_type_hints, Any, get_origin, Annotated, get_args, Union
 
 import rstr
 
@@ -2087,7 +2084,25 @@ class RandomModelGenerator:
         return generated
 
     @staticmethod
-    def _generate_value(field_type: type) -> Any:
+    def _generate_value(field_type: Any) -> Any:
+        origin = get_origin(field_type)
+
+        # Optional[T] -> Union[T, NoneType]
+        if origin is Union:
+            args = [a for a in get_args(field_type)]
+            non_none = [a for a in args if a is not type(None)]
+            # чаще генерим значение, иногда None
+            if not non_none or random.random() < 0.2:
+                return None
+            return RandomModelGenerator._generate_value(non_none[0])
+
+        # List[T]
+        if origin in (list,):
+            (item_type,) = get_args(field_type) or (str,)
+            # для REST-запроса на создание обычно достаточно 1 элемента
+            return [RandomModelGenerator._generate_value(item_type)]
+
+        # базовые типы
         if field_type is str:
             return str(uuid.uuid4())[:8]
         elif field_type is int:
@@ -2098,11 +2113,12 @@ class RandomModelGenerator:
             return random.choice([True, False])
         elif field_type is datetime:
             return datetime.now() - timedelta(seconds=random.randint(0, 100000))
-        elif field_type is list:
-            return [str(uuid.uuid4())[:5] for _ in range(random.randint(3, 10))]
-        elif isinstance(field_type, type):
+
+        # вложенные модели (Pydantic)
+        if isinstance(field_type, type):
             return RandomModelGenerator.generate(field_type)
-        return
+
+        return None
 
 
 

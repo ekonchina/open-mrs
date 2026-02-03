@@ -66,3 +66,12 @@ class CrudRequester(HTTPRequest, CrudEndPointInterface):
                                  headers=self.request_spec)
         self.response_spec(response)
         return response
+
+    def delete_with_params(self, id: str, params: Optional[Dict[str, Any]] = None) -> Response:
+        server_url = Config.get('server')
+        api_version_url = Config.get('api_version')
+
+        url = f'{server_url}{api_version_url}{self.endpoint.value.url}/{id}'
+        response = requests.delete(url=url, headers=self.request_spec, params=params)
+        self.response_spec(response)
+        return response

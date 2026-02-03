@@ -59,3 +59,9 @@ class Endpoint(Enum):
         request_model=None,
         response_model=PersonFullResponse
     )
+
+    DELETE_PERSON = EndpointConfig(
+        url="/person",
+        request_model=None,
+        response_model=None
+    )

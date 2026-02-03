@@ -74,11 +74,14 @@ class AdminSteps(BaseSteps):
         ).get()
 
     def create_person(self, create_person_request: CreatePersonRequest) -> PersonCreateResponse:
-        return ValidatedCrudRequester(
+        person = ValidatedCrudRequester(
             request_spec=RequestSpecs.admin_auth_spec(),
             endpoint=Endpoint.CREATE_PERSON,
-            response_spec=ResponseSpecs.entity_was_created()  # обычно 201
+            response_spec=ResponseSpecs.entity_was_created()
         ).post(create_person_request)
+
+        self.created_objects.append(person)
+        return person
 
     def get_person_full(self, person_uuid: str) -> PersonFullResponse:
         return ValidatedCrudRequester(
@@ -86,6 +89,15 @@ class AdminSteps(BaseSteps):
             endpoint=Endpoint.GET_PERSON,
             response_spec=ResponseSpecs.request_returns_ok()
         ).get(id=person_uuid, params={"v": "full"})
+
+    def delete_person(self, person_uuid: str, purge: bool = True):
+        params = {"purge": "true"} if purge else None
+
+        CrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.DELETE_PERSON,
+            response_spec=ResponseSpecs.entity_was_deleted()
+        ).delete_with_params(id=person_uuid, params=params)
 
     #TODO: удалять персон
 

@@ -5,6 +5,7 @@ import pytest
 from src.api.fixtures.api_fixtures import *
 from src.api.fixtures.user_fixtures import *
 from src.api.fixtures.objects_fixture import *
+from src.api.models.responses.create_person_response import PersonCreateResponse
 
 from src.api.models.responses.create_user_response import UserProfileResponse
 
@@ -14,6 +15,9 @@ def cleanup_object(objects: list):
     for obj in objects:
         if isinstance(obj, UserProfileResponse):
             api_manager.admin_steps.delete_user(obj.id)
+
+        elif isinstance(obj, PersonCreateResponse):
+            api_manager.admin_steps.delete_person(obj.uuid, purge=True)
         else:
             logging.warning(f'Object type: {type(obj)} is not deleted')
 
