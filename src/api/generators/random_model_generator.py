@@ -8,6 +8,10 @@ from datetime import date, timedelta
 import rstr
 
 from src.api.generators.generating_rule import GeneratingRule
+from src.api.generators.mod30 import generate_mod30_identifier, luhn_mod_n_is_valid
+from src.api.models.requests.create_patient_from_person_request import PatientIdentifierRequest
+
+
 class RandomModelGenerator:
     @staticmethod
     def generate(cls: type) -> Any:
@@ -23,6 +27,14 @@ class RandomModelGenerator:
                 for ann in annotations:
                     if isinstance(ann, GeneratingRule):
                         rule = ann
+
+            if cls is PatientIdentifierRequest and field_name == "identifier":
+                # например, длина 10 (можно сделать randint)
+                value = generate_mod30_identifier(total_len=random.randint(6, 12))
+                # самопроверка (на всякий)
+                assert luhn_mod_n_is_valid(value), f"Generated invalid Mod-30 id: {value}"
+                init_data[field_name] = value
+                continue
 
             if field_name == "birthdate" and actual_type is str:
                 days_ago = random.randint(0, 365 * 90)

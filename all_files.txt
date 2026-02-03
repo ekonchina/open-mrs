@@ -215,10 +215,8 @@ CreatePersonRequest=PersonFullResponse:gender=gender,names[0].givenName=names[0]
 FILE: ./resources/config.properties
 ================================================================================
 [DEFAULT]
-#TODO: update
 server = http://localhost/openmrs/ws/rest
 api_version = /v1
-backend_url = http://localhost/openmrs/ws/rest/v1
 ================================================================================
 FILE: ./tests/__init__.py
 ================================================================================
@@ -633,7 +631,6 @@ from src.api.specs.response_spec import ResponseSpecs
 
 
 class RequestSpecs:
-    _BASE_URL = Config.get('backendUrl')
 
     @staticmethod
     def default_request_headers():
