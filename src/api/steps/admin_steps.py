@@ -5,10 +5,8 @@ from src.api.models.comparison.model_assertions import ModelAssertions
 from src.api.models.requests.create_patient_from_person_request import CreatePatientFromPersonRequest, \
     PatientIdentifierRequest
 from src.api.models.requests.create_person_request import CreatePersonRequest, CreatePersonInvalidRequest
-from src.api.models.requests.create_user_request import CreateUserRequest
 from src.api.models.responses.create_patient_response import PatientCreateResponse
 from src.api.models.responses.create_person_response import CreatPersonResponse, PersonFullResponse
-from src.api.models.responses.create_user_response import UserProfileResponse
 from src.api.requests.sceleton.endpoint import Endpoint
 from src.api.requests.sceleton.requesters.crud_requester import CrudRequester
 from src.api.requests.sceleton.requesters.validated_crud_requester import ValidatedCrudRequester
