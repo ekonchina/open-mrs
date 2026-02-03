@@ -11,7 +11,7 @@ from src.api.models.requests.login_user_request import LoginUserRequest
 from src.api.models.requests.update_profile_request import UpdateProfileRequest
 from src.api.models.responses.create_acoount_response import AccountResponse
 from src.api.models.responses.create_patient_response import PatientCreateResponse
-from src.api.models.responses.create_person_response import PersonCreateResponse, PersonFullResponse
+from src.api.models.responses.create_person_response import CreatPersonResponse, PersonFullResponse
 from src.api.models.responses.create_user_response import UserProfileResponse
 from src.api.models.responses.get_location_response import LocationListResponse
 from src.api.models.responses.get_roles_response import RoleListResponse
@@ -53,7 +53,7 @@ class Endpoint(Enum):
     CREATE_PERSON = EndpointConfig(
         url="/person",
         request_model=CreatePersonRequest,
-        response_model=PersonCreateResponse
+        response_model=CreatPersonResponse
     )
 
     GET_PERSON = EndpointConfig(

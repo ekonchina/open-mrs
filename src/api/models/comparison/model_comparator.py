@@ -30,12 +30,36 @@ class ModelComparator:
                 mismatches.append(Mismatch(f'{request_field} -> {response_field}', request_value, response_value))
         return ComparisonResult(mismatches)
 
+    @staticmethod
+    def _get_field_value(obj: Any, path: str) -> Any:
+        """
+        Поддерживает пути вида:
+        - gender
+        - names[0].givenName
+        - names[0].familyName
+        """
+        current = obj
 
-    def _get_field_value(obj:Any, field_name: str):
-        current_class = obj.__class__
+        for part in path.split("."):
+            # names[0]
+            match = re.match(r"(\w+)\[(\d+)\]", part)
+            if match:
+                attr_name, index = match.groups()
+                index = int(index)
 
-        while current_class:
-            if hasattr(obj, field_name):
-                return getattr(obj, field_name)
-            current_class = current_class.__base__
-        raise AttributeError(f'Field {field_name} not found in class {obj.__class__.__name__}')
+                # attr
+                if isinstance(current, dict):
+                    current = current[attr_name]
+                else:
+                    current = getattr(current, attr_name)
+
+                # index
+                current = current[index]
+            else:
+                # обычное поле
+                if isinstance(current, dict):
+                    current = current[part]
+                else:
+                    current = getattr(current, part)
+
+        return current

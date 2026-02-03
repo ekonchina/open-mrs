@@ -6,7 +6,7 @@ from src.api.models.requests.create_patient_from_person_request import CreatePat
 from src.api.models.requests.create_person_request import CreatePersonRequest
 from src.api.models.requests.create_user_request import CreateUserRequest
 from src.api.models.responses.create_patient_response import PatientCreateResponse
-from src.api.models.responses.create_person_response import PersonCreateResponse, PersonFullResponse
+from src.api.models.responses.create_person_response import CreatPersonResponse, PersonFullResponse
 from src.api.models.responses.create_user_response import UserProfileResponse
 from src.api.requests.sceleton.endpoint import Endpoint
 from src.api.requests.sceleton.requesters.crud_requester import CrudRequester
@@ -75,13 +75,15 @@ class AdminSteps(BaseSteps):
             response_spec=ResponseSpecs.request_returns_ok()
         ).get()
 
-    def create_person(self, create_person_request: CreatePersonRequest) -> PersonCreateResponse:
+    def create_person(self, create_person_request: CreatePersonRequest) -> CreatPersonResponse:
         person = ValidatedCrudRequester(
             request_spec=RequestSpecs.admin_auth_spec(),
             endpoint=Endpoint.CREATE_PERSON,
             response_spec=ResponseSpecs.entity_was_created()
         ).post(create_person_request)
 
+        full = self.get_person_full(person.uuid)
+        ModelAssertions(create_person_request, full).match()
         self.created_objects.append(person)
         return person
 
