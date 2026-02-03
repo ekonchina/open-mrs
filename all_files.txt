@@ -195,8 +195,7 @@ FILE: ./.pytest_cache/v/cache/lastfailed
   "help_requests/test_create_person.py::test_create_person_success_variants[payload4-expected_check4]": true,
   "help_requests/test_create_person.py::test_create_person_negative_validation[payload5]": true,
   "help_requests/test_create_person.py::test_create_person_negative_validation[payload2]": true,
-  "help_requests/test_create_person.py::test_create_person_negative_validation[payload4]": true,
-  "tests/api/open_msr/test_create_person.py::test_create_person_generated": true
+  "help_requests/test_create_person.py::test_create_person_negative_validation[payload4]": true
 }
 ================================================================================
 FILE: ./resources/model-comparison.properties
@@ -227,6 +226,7 @@ import pytest
 from src.api.fixtures.api_fixtures import *
 from src.api.fixtures.user_fixtures import *
 from src.api.fixtures.objects_fixture import *
+from src.api.models.responses.create_person_response import PersonCreateResponse
 
 from src.api.models.responses.create_user_response import UserProfileResponse
 
@@ -236,6 +236,9 @@ def cleanup_object(objects: list):
     for obj in objects:
         if isinstance(obj, UserProfileResponse):
             api_manager.admin_steps.delete_user(obj.id)
+
+        elif isinstance(obj, PersonCreateResponse):
+            api_manager.admin_steps.delete_person(obj.uuid, purge=True)
         else:
             logging.warning(f'Object type: {type(obj)} is not deleted')
 
@@ -929,7 +932,7 @@ class ResponseSpecs:
     @staticmethod
     def entity_was_deleted() -> Callable:
         def check(response: Response):
-            assert response.status_code in (HTTPStatus.CREATED, HTTPStatus.OK), response.text
+            assert response.status_code in (HTTPStatus.CREATED, HTTPStatus.OK, HTTPStatus.NO_CONTENT), response.text
         return check
 
 
@@ -1575,6 +1578,12 @@ class Endpoint(Enum):
         request_model=None,
         response_model=PersonFullResponse
     )
+
+    DELETE_PERSON = EndpointConfig(
+        url="/person",
+        request_model=None,
+        response_model=None
+    )
 ================================================================================
 FILE: ./src/api/requests/sceleton/http_request.py
 ================================================================================
@@ -1696,6 +1705,15 @@ class CrudRequester(HTTPRequest, CrudEndPointInterface):
         self.response_spec(response)
         return response
 
+    def delete_with_params(self, id: str, params: Optional[Dict[str, Any]] = None) -> Response:
+        server_url = Config.get('server')
+        api_version_url = Config.get('api_version')
+
+        url = f'{server_url}{api_version_url}{self.endpoint.value.url}/{id}'
+        response = requests.delete(url=url, headers=self.request_spec, params=params)
+        self.response_spec(response)
+        return response
+
 ================================================================================
 FILE: ./src/api/requests/sceleton/interfaces/crud_end_interface.py
 ================================================================================
@@ -1796,11 +1814,14 @@ class AdminSteps(BaseSteps):
         ).get()
 
     def create_person(self, create_person_request: CreatePersonRequest) -> PersonCreateResponse:
-        return ValidatedCrudRequester(
+        person = ValidatedCrudRequester(
             request_spec=RequestSpecs.admin_auth_spec(),
             endpoint=Endpoint.CREATE_PERSON,
-            response_spec=ResponseSpecs.entity_was_created()  # обычно 201
+            response_spec=ResponseSpecs.entity_was_created()
         ).post(create_person_request)
+
+        self.created_objects.append(person)
+        return person
 
     def get_person_full(self, person_uuid: str) -> PersonFullResponse:
         return ValidatedCrudRequester(
@@ -1808,6 +1829,15 @@ class AdminSteps(BaseSteps):
             endpoint=Endpoint.GET_PERSON,
             response_spec=ResponseSpecs.request_returns_ok()
         ).get(id=person_uuid, params={"v": "full"})
+
+    def delete_person(self, person_uuid: str, purge: bool = True):
+        params = {"purge": "true"} if purge else None
+
+        CrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.DELETE_PERSON,
+            response_spec=ResponseSpecs.entity_was_deleted()
+        ).delete_with_params(id=person_uuid, params=params)
 
     #TODO: удалять персон
 

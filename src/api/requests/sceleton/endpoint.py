@@ -3,12 +3,14 @@ from enum import Enum
 from typing import Optional
 
 from src.api.models.base_model import BaseModel
+from src.api.models.requests.create_patient_from_person_request import CreatePatientFromPersonRequest
 from src.api.models.requests.create_person_request import CreatePersonRequest
 from src.api.models.requests.create_user_request import CreateUserRequest
 from src.api.models.requests.fund_deposit_request import FundDepositRequest
 from src.api.models.requests.login_user_request import LoginUserRequest
 from src.api.models.requests.update_profile_request import UpdateProfileRequest
 from src.api.models.responses.create_acoount_response import AccountResponse
+from src.api.models.responses.create_patient_response import PatientCreateResponse
 from src.api.models.responses.create_person_response import PersonCreateResponse, PersonFullResponse
 from src.api.models.responses.create_user_response import UserProfileResponse
 from src.api.models.responses.get_location_response import LocationListResponse
@@ -62,6 +64,18 @@ class Endpoint(Enum):
 
     DELETE_PERSON = EndpointConfig(
         url="/person",
+        request_model=None,
+        response_model=None
+    )
+
+    CREATE_PATIENT_FROM_PERSON = EndpointConfig(
+        url="/patient",
+        request_model=CreatePatientFromPersonRequest,
+        response_model=PatientCreateResponse
+    )
+
+    DELETE_PATIENT = EndpointConfig(
+        url="/patient",
         request_model=None,
         response_model=None
     )

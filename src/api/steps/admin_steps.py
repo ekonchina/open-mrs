@@ -2,8 +2,10 @@ from typing import Union
 
 from src.api.generators.random_model_generator import RandomModelGenerator
 from src.api.models.comparison.model_assertions import ModelAssertions
+from src.api.models.requests.create_patient_from_person_request import CreatePatientFromPersonRequest
 from src.api.models.requests.create_person_request import CreatePersonRequest
 from src.api.models.requests.create_user_request import CreateUserRequest
+from src.api.models.responses.create_patient_response import PatientCreateResponse
 from src.api.models.responses.create_person_response import PersonCreateResponse, PersonFullResponse
 from src.api.models.responses.create_user_response import UserProfileResponse
 from src.api.requests.sceleton.endpoint import Endpoint
@@ -98,6 +100,24 @@ class AdminSteps(BaseSteps):
             endpoint=Endpoint.DELETE_PERSON,
             response_spec=ResponseSpecs.entity_was_deleted()
         ).delete_with_params(id=person_uuid, params=params)
+
+    def create_patient_from_person(self, req: CreatePatientFromPersonRequest) -> PatientCreateResponse:
+        patient = ValidatedCrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.CREATE_PATIENT_FROM_PERSON,
+            response_spec=ResponseSpecs.entity_was_created()
+        ).post(req)
+
+        self.created_objects.append(patient)
+        return patient
+
+    def delete_patient(self, patient_uuid: str, purge: bool = True):
+        params = {"purge": "true"} if purge else None
+        CrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.DELETE_PATIENT,
+            response_spec=ResponseSpecs.entity_was_deleted()
+        ).delete_with_params(id=patient_uuid, params=params)
 
     #TODO: удалять персон
 
