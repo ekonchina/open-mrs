@@ -217,6 +217,8 @@ FILE: ./resources/model-comparison.properties
 ================================================================================
 [DEFAULT]
 CreatePersonRequest=PersonFullResponse:gender=gender,names[0].givenName=names[0].givenName,names[0].familyName=names[0].familyName
+CreatePatientFromPersonRequest=PatientFullResponse:identifiers[0].identifier=identifiers[0].identifier,identifiers[0].preferred=identifiers[0].preferred
+
 
 ================================================================================
 FILE: ./resources/config.properties
@@ -237,8 +239,6 @@ import pytest
 
 from src.api.fixtures.api_fixtures import *
 from src.api.fixtures.objects_fixture import *
-from src.api.models.responses.create_patient_response import PatientCreateResponse
-from src.api.models.responses.create_person_response import CreatPersonResponse
 
 
 
@@ -567,11 +567,17 @@ FILE: ./src/api/models/responses/create_patient_response.py
 from typing import List, Optional, Any
 from src.api.models.base_model import BaseModel
 
-
 class Link(BaseModel):
     rel: str
     uri: str
     resourceAlias: Optional[str] = None
+
+
+class PatientCreateResponse(BaseModel):
+    uuid: str
+    display: Optional[str] = None
+    links: Optional[List[Link]] = None
+
 
 
 class PatientIdentifierResponse(BaseModel):
@@ -579,17 +585,13 @@ class PatientIdentifierResponse(BaseModel):
     display: Optional[str] = None
     identifier: Optional[str] = None
     preferred: Optional[bool] = None
-    # OpenMRS часто возвращает identifierType/location как объект или ссылку (разные reps),
-    # поэтому делаем мягко:
     identifierType: Optional[Any] = None
     location: Optional[Any] = None
 
-
-class PatientCreateResponse(BaseModel):
+class PatientFullResponse(BaseModel):
     uuid: str
     display: str
     identifiers: Optional[List[PatientIdentifierResponse]] = None
-    links: Optional[List[Link]] = None
 
 ================================================================================
 FILE: ./src/api/models/requests/update_profile_request.py
@@ -848,7 +850,7 @@ from typing import Optional
 from src.api.models.base_model import BaseModel
 from src.api.models.requests.create_patient_from_person_request import CreatePatientFromPersonRequest
 from src.api.models.requests.create_person_request import CreatePersonRequest
-from src.api.models.responses.create_patient_response import PatientCreateResponse
+from src.api.models.responses.create_patient_response import PatientFullResponse, PatientCreateResponse
 from src.api.models.responses.create_person_response import CreatPersonResponse, PersonFullResponse
 from src.api.models.responses.get_location_response import LocationListResponse
 from src.api.models.responses.get_roles_response import RoleListResponse
@@ -907,6 +909,12 @@ class Endpoint(Enum):
         url="/patient",
         request_model=None,
         response_model=None
+    )
+
+    GET_PATIENT = EndpointConfig(
+        url="/patient",
+        request_model=None,
+        response_model=PatientFullResponse  # добавим модель ниже
     )
 ================================================================================
 FILE: ./src/api/requests/sceleton/http_request.py
@@ -1068,7 +1076,7 @@ from src.api.models.comparison.model_assertions import ModelAssertions
 from src.api.models.requests.create_patient_from_person_request import CreatePatientFromPersonRequest, \
     PatientIdentifierRequest
 from src.api.models.requests.create_person_request import CreatePersonRequest, CreatePersonInvalidRequest
-from src.api.models.responses.create_patient_response import PatientCreateResponse
+from src.api.models.responses.create_patient_response import PatientFullResponse, PatientCreateResponse
 from src.api.models.responses.create_person_response import CreatPersonResponse, PersonFullResponse
 from src.api.requests.sceleton.endpoint import Endpoint
 from src.api.requests.sceleton.requesters.crud_requester import CrudRequester
@@ -1132,15 +1140,30 @@ class AdminSteps(BaseSteps):
             response_spec=ResponseSpecs.entity_was_deleted()
         ).delete_with_params(id=person_uuid, params=params)
 
+    def get_patient_full(self, patient_uuid: str) -> PatientFullResponse:
+        return ValidatedCrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.GET_PATIENT,
+            response_spec=ResponseSpecs.request_returns_ok()
+        ).get(id=patient_uuid, params={"v": "full"})
+
     def create_patient_from_person(self, req: CreatePatientFromPersonRequest) -> PatientCreateResponse:
-        patient = ValidatedCrudRequester(
+        patient_created = ValidatedCrudRequester(
             request_spec=RequestSpecs.admin_auth_spec(),
             endpoint=Endpoint.CREATE_PATIENT_FROM_PERSON,
             response_spec=ResponseSpecs.entity_was_created()
         ).post(req)
 
-        self.created_objects.append(patient)
-        return patient
+        assert patient_created.uuid, f"patient_created.uuid is falsy: {patient_created}"
+        assert str(patient_created.uuid).lower() != "null", f"uuid returned as 'null': {patient_created}"
+
+        # <-- ключевая часть
+        patient_full = self.get_patient_full(patient_created.uuid)
+
+        ModelAssertions(req, patient_full).match()
+
+        self.created_objects.append(patient_created)
+        return patient_created
 
     def delete_patient(self, patient_uuid: str, purge: bool = True):
         params = {"purge": "true"} if purge else None

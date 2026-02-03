@@ -12,10 +12,6 @@ class RequestSpecs:
         }
 
     @staticmethod
-    def unauth_spec():
-        return RequestSpecs.default_request_headers()
-
-    @staticmethod
     def admin_auth_spec():
         raw = "admin:Admin123"
         token = base64.b64encode(raw.encode()).decode()

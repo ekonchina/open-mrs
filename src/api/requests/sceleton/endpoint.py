@@ -5,7 +5,7 @@ from typing import Optional
 from src.api.models.base_model import BaseModel
 from src.api.models.requests.create_patient_from_person_request import CreatePatientFromPersonRequest
 from src.api.models.requests.create_person_request import CreatePersonRequest
-from src.api.models.responses.create_patient_response import PatientCreateResponse
+from src.api.models.responses.create_patient_response import PatientFullResponse, PatientCreateResponse
 from src.api.models.responses.create_person_response import CreatPersonResponse, PersonFullResponse
 from src.api.models.responses.get_location_response import LocationListResponse
 from src.api.models.responses.get_roles_response import RoleListResponse
@@ -64,4 +64,10 @@ class Endpoint(Enum):
         url="/patient",
         request_model=None,
         response_model=None
+    )
+
+    GET_PATIENT = EndpointConfig(
+        url="/patient",
+        request_model=None,
+        response_model=PatientFullResponse  # добавим модель ниже
     )

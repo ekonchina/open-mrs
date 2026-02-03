@@ -5,7 +5,7 @@ from src.api.models.comparison.model_assertions import ModelAssertions
 from src.api.models.requests.create_patient_from_person_request import CreatePatientFromPersonRequest, \
     PatientIdentifierRequest
 from src.api.models.requests.create_person_request import CreatePersonRequest, CreatePersonInvalidRequest
-from src.api.models.responses.create_patient_response import PatientCreateResponse
+from src.api.models.responses.create_patient_response import PatientFullResponse, PatientCreateResponse
 from src.api.models.responses.create_person_response import CreatPersonResponse, PersonFullResponse
 from src.api.requests.sceleton.endpoint import Endpoint
 from src.api.requests.sceleton.requesters.crud_requester import CrudRequester
@@ -69,16 +69,30 @@ class AdminSteps(BaseSteps):
             response_spec=ResponseSpecs.entity_was_deleted()
         ).delete_with_params(id=person_uuid, params=params)
 
+    def get_patient_full(self, patient_uuid: str) -> PatientFullResponse:
+        return ValidatedCrudRequester(
+            request_spec=RequestSpecs.admin_auth_spec(),
+            endpoint=Endpoint.GET_PATIENT,
+            response_spec=ResponseSpecs.request_returns_ok()
+        ).get(id=patient_uuid, params={"v": "full"})
+
     def create_patient_from_person(self, req: CreatePatientFromPersonRequest) -> PatientCreateResponse:
-        patient = ValidatedCrudRequester(
+        patient_created = ValidatedCrudRequester(
             request_spec=RequestSpecs.admin_auth_spec(),
             endpoint=Endpoint.CREATE_PATIENT_FROM_PERSON,
             response_spec=ResponseSpecs.entity_was_created()
         ).post(req)
 
-        ModelAssertions(req, patient).match()
-        self.created_objects.append(patient)
-        return patient
+        assert patient_created.uuid, f"patient_created.uuid is falsy: {patient_created}"
+        assert str(patient_created.uuid).lower() != "null", f"uuid returned as 'null': {patient_created}"
+
+        # <-- ключевая часть
+        patient_full = self.get_patient_full(patient_created.uuid)
+
+        ModelAssertions(req, patient_full).match()
+
+        self.created_objects.append(patient_created)
+        return patient_created
 
     def delete_patient(self, patient_uuid: str, purge: bool = True):
         params = {"purge": "true"} if purge else None
