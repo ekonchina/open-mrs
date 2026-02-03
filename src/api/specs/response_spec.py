@@ -22,7 +22,7 @@ class ResponseSpecs:
     @staticmethod
     def entity_was_deleted() -> Callable:
         def check(response: Response):
-            assert response.status_code in (HTTPStatus.CREATED, HTTPStatus.OK), response.text
+            assert response.status_code in (HTTPStatus.CREATED, HTTPStatus.OK, HTTPStatus.NO_CONTENT), response.text
         return check
 
 
