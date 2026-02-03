@@ -2,7 +2,8 @@ from typing import Union
 
 from src.api.generators.random_model_generator import RandomModelGenerator
 from src.api.models.comparison.model_assertions import ModelAssertions
-from src.api.models.requests.create_patient_from_person_request import CreatePatientFromPersonRequest
+from src.api.models.requests.create_patient_from_person_request import CreatePatientFromPersonRequest, \
+    PatientIdentifierRequest
 from src.api.models.requests.create_person_request import CreatePersonRequest
 from src.api.models.requests.create_user_request import CreateUserRequest
 from src.api.models.responses.create_patient_response import PatientCreateResponse
@@ -120,6 +121,38 @@ class AdminSteps(BaseSteps):
             endpoint=Endpoint.DELETE_PATIENT,
             response_spec=ResponseSpecs.entity_was_deleted()
         ).delete_with_params(id=patient_uuid, params=params)
+
+    def create_patient_from_existing_person(
+        self,
+        create_person_request: CreatePersonRequest | None = None,
+        identifier_request: PatientIdentifierRequest | None = None,
+    ):
+        # 1) person
+        create_person_request = create_person_request or RandomModelGenerator.generate(CreatePersonRequest)
+        created_person = self.create_person(create_person_request)
+
+        # 2) справочники
+        types = self.get_patient_identifier_types()
+        identifier_type_uuid = types.results[0].uuid
+
+        locations = self.get_locations()
+        location_uuid = locations.results[0].uuid
+
+        # 3) identifier
+        identifier = identifier_request or RandomModelGenerator.generate(PatientIdentifierRequest)
+        identifier.identifierType = identifier_type_uuid
+        identifier.location = location_uuid
+        identifier.preferred = True
+
+        # 4) patient
+        req = CreatePatientFromPersonRequest(person=created_person.uuid, identifiers=[identifier])
+        created_patient = self.create_patient_from_person(req)
+
+        # 5) минимальные ассерты (по аналогии с create_valid_user)
+        assert created_patient.uuid
+        assert created_patient.display
+
+        return created_patient
 
     #TODO: удалять персон
 
