@@ -48,9 +48,19 @@ class AdminSteps(BaseSteps):
             response_spec=ResponseSpecs.entity_was_created()
         ).post(create_person_request)
 
-        full = self.get_person_full(person.uuid)
-        ModelAssertions(create_person_request, full).match()
+        assert person.uuid
+        assert person.voided is False
+        assert person.preferredName.uuid
+        full_person = self.get_person_full(person.uuid)
+
+
+        full_person = self.get_person_full(person.uuid)
+        ModelAssertions(create_person_request, full_person).match()
         self.created_objects.append(person)
+
+
+
+        assert full_person.uuid == person.uuid
         return person
 
     def get_person_full(self, person_uuid: str) -> PersonFullResponse:
